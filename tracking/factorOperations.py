@@ -102,9 +102,23 @@ def joinFactors(factors: List[Factor]):
                     "\n".join(map(str, factors)))
 
 
-    "*** YOUR CODE HERE ***"
-    raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    "*** MY CODE HERE ***"
+    allVariables = functools.reduce(lambda x, y: x | y, [factor.variablesSet() for factor in factors])
+    unconditionedVariables = functools.reduce(lambda x, y: x | y, [factor.unconditionedVariables() for factor in factors])
+    conditionedVariables = allVariables - unconditionedVariables
+    print("unconditionedVariables: ", unconditionedVariables)
+    print("conditionedVariables: ", conditionedVariables)
+    
+    joinedFactor = Factor(unconditionedVariables, conditionedVariables, list(factors)[0].variableDomainsDict())
+    for assignmentDict in joinedFactor.getAllPossibleAssignmentDicts():
+        probability = 1.0
+        for factor in factors:
+            probability *= factor.getProbability(assignmentDict)
+        joinedFactor.setProbability(assignmentDict, probability)
+    
+    return joinedFactor
+    "*** END MY CODE HERE ***"
+    
 
 ########### ########### ###########
 ########### QUESTION 3  ###########
@@ -153,9 +167,20 @@ def eliminateWithCallTracking(callTrackingList=None):
                     "eliminationVariable:" + str(eliminationVariable) + "\n" +\
                     "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
-        "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        "*** MY CODE HERE ***"
+        newUnconditionedVariables = factor.unconditionedVariables() - {eliminationVariable}
+        newConditionedVariables = factor.conditionedVariables()
+        newFactor = Factor(newUnconditionedVariables, newConditionedVariables, factor.variableDomainsDict())
+
+        for assignmentDict in factor.getAllPossibleAssignmentDicts():
+            if eliminationVariable not in assignmentDict:
+                continue
+            reducedAssignmentDict = {var: assignmentDict[var] for var in assignmentDict if var != eliminationVariable}
+            probability = factor.getProbability(assignmentDict)
+            newFactor.setProbability(reducedAssignmentDict, newFactor.getProbability(reducedAssignmentDict) + probability)
+
+        return newFactor
+        "*** END MY CODE HERE ***"
 
     return eliminate
 
